@@ -1,0 +1,106 @@
+# Minimal Kotlin Scripting IDE Test Repo
+
+Goals: Expose some IDE problems with Kotlin scripting using very simple examples that are derived from my very real codebase.
+
+## How to confirm stuff works
+
+Run the test at `srcs/pub/src/test/kotlin/zk/TestEverything.kt`. This can be done either via the IDE or with `./gradlew test`.
+
+This is a very simple example and for the test to run, the script must run without errors and correctly import another script.
+
+The IDE disagrees that this script works, however. See below.
+
+## Troubleshooting
+
+Sometimes, the scripts have import errors when you wouldn't expect, and they persist beyond an
+"invalidate-and-restart". 
+
+I've had luck using the following as a 'scripting reset' for the IDE:
+
+Settings -> Languages & Frameworks -> Kotlin -> Kotlin Scripting:
+
+Then find the script definitions in the list (these were populated because of my META-INF touchfiles), and uncheck to disable them, apply, and then recheck to enable them, and apply... and then wait a minute or so?
+
+I also move my annotations to the top of the list, out of fear that the high level '.kts' definition will supercede them. This is not supported by evidence though...
+
+# Problems with Kotlin Scripting that this repo shows:
+
+## K1 Compiler:
+
+### Problem: (K1 & K2) Scripts 'default imports' are not recognized in IDE.
+
+![screen1.png](screen1.png)
+
+Here, `numberThatTheScriptCanAccess` should be found from the default import that the IDE has access to via the annotation on the script type. This functionality works when we actually run the code. However, in the IDE it is not found.
+
+TODO: link to ktij issue!
+
+TODO 2: Uh. K2, + finding script templates, + invalidate and restart, seems to have fixed this??
+maybe move to a new section called intermittent problems?
+
+### Problem: (K1 & K2) Scripts that import other scripts report the import as not being found on K1
+
+#### Manifestation 1: Import annotation not found
+
+For K1: This happens when for whatever reason the IDE can't find the script definitions. I can usually move it to manifestation-2 by going through the troubleshooting tip I listed earlier by reordering and re-enabling the script definitions.
+
+For K2: This happens all the time, I can't move to manifestation-2 with K2.
+
+![screen2.png](screen2.png)
+
+Here the import annotation cannot be found by the IDE, but when the script actually runs, it is found because the function we imported is available.
+
+Note: `Import` annotation is declared in `UserScriptCompilationConfiguration.kt` and this was created according to this example: https://github.com/Kotlin/kotlin-script-examples/blob/fec834e2a9a2c07c8486a684d3e131cb909015d7/jvm/simple-main-kts/simple-main-kts/src/main/kotlin/org/jetbrains/kotlin/script/examples/simpleMainKts/annotations.kt#L20 
+
+
+#### Manifestation 2: Red banner saying source not found
+
+This one makes the whole file underlined in red, which is extra annoying.
+
+Note that the path listed on the banner is actually incorrect. It should be using the path prefix that was provided to the import annotation (as this is how the script compiles and runs when you run the test!)
+
+![screen5.png](screen5.png)
+
+TODO: link to ktij issue
+
+## K2 Compiler:
+
+K2 suffers from all of the problems of K1, plus:
+
+### Problem: (K2) Explicit imports cannot be found.
+
+This is a problem specific to K2 - in K1, these imports can be found.
+
+![screen3.png](screen3.png)
+
+
+(Here's what we see in K1):
+![screen4.png](screen4.png)
+
+TODO: link to ktij issue
+
+
+# BONUS! I also show a work around for `scriptsInstancesSharing` not having the desired/intended performance.
+
+Take a look inside of `UserScriptRegistry` to see how I use the compiled script instances.
+
+The existing examples instead seem to run the script through the evaluators every time, which pays the class loading cost, which is huge (according to my benchmarks).
+
+There's an 'instances sharing' configuration, which you would think would do this, but it doesn't seem to work (the performance cost is still big last time I checked).
+
+Weird! Leaving it in the repo for an example for others to consider. Once these other problems are fixed maybe I should make an issue to track the instance sharing flag not seeming to work...
+
+
+# System information from latest manual test
+
+Last Tested: Dec 2025
+
+Kotlin Version: 2.2.21
+
+IDE Version:
+```
+IntelliJ IDEA 2025.2.5 (Community Edition)
+Build #IC-252.28238.7, built on November 19, 2025
+Source revision: 7059016f3609e
+Runtime version: 21.0.9+10-b1038.76 aarch64 (JCEF 122.1.9)
+```
