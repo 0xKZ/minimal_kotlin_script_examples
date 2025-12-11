@@ -19,63 +19,40 @@ I've had luck using the following as a 'scripting reset' for the IDE:
 
 Settings -> Languages & Frameworks -> Kotlin -> Kotlin Scripting:
 
-Then find the script definitions in the list (these were populated because of my META-INF touchfiles), and uncheck to disable them, apply, and then recheck to enable them, and apply... and then wait a minute or so?
+Then find the script definitions in the list (these were populated because of my META-INF touchfiles. If not in the list, click the button to scan for them, then exit-and-reenter), and uncheck to disable them, apply, and then recheck to enable them, and apply... and then wait a minute or so?
 
 I also move my annotations to the top of the list, out of fear that the high level '.kts' definition will supercede them. This is not supported by evidence though...
 
 # Problems with Kotlin Scripting that this repo shows:
 
-## K1 Compiler:
+Currently, there's just one that is consistent! I have some other intermittent problems, but that's not the focus here.
 
-### Problem: (K1 & K2) Scripts 'default imports' are not recognized in IDE.
+## Problem: (K1 & K2) Scripts that import other scripts report the import as not being found on K1
 
-![screen1.png](screen1.png)
+This utilizes a feature wherein you need a script to be able to import and use another script.
 
-Here, `numberThatTheScriptCanAccess` should be found from the default import that the IDE has access to via the annotation on the script type. This functionality works when we actually run the code. However, in the IDE it is not found.
+My `Import` annotation is declared in `UserScriptCompilationConfiguration.kt` and this was created according to this example: https://github.com/Kotlin/kotlin-script-examples/blob/fec834e2a9a2c07c8486a684d3e131cb909015d7/jvm/simple-main-kts/simple-main-kts/src/main/kotlin/org/jetbrains/kotlin/script/examples/simpleMainKts/annotations.kt#L20
 
-TODO: link to ktij issue!
+One relevant detail here is that I am using an override for where the imported scripts are relative to. A theory I have is that the IDE integration is not properly integrating with this feature.
 
-TODO 2: Uh. K2, + finding script templates, + invalidate and restart, seems to have fixed this??
-maybe move to a new section called intermittent problems?
-
-### Problem: (K1 & K2) Scripts that import other scripts report the import as not being found on K1
-
-#### Manifestation 1: Import annotation not found
+### Manifestation 1: Import annotation not found
 
 For K1: This happens when for whatever reason the IDE can't find the script definitions. I can usually move it to manifestation-2 by going through the troubleshooting tip I listed earlier by reordering and re-enabling the script definitions.
 
-For K2: This happens all the time, I can't move to manifestation-2 with K2.
+For K2: This seems to be the usual failure mode. Sometimes, I see manifestation-2 with K2, but can't consistently produce it.
 
 ![screen2.png](screen2.png)
 
 Here the import annotation cannot be found by the IDE, but when the script actually runs, it is found because the function we imported is available.
 
-Note: `Import` annotation is declared in `UserScriptCompilationConfiguration.kt` and this was created according to this example: https://github.com/Kotlin/kotlin-script-examples/blob/fec834e2a9a2c07c8486a684d3e131cb909015d7/jvm/simple-main-kts/simple-main-kts/src/main/kotlin/org/jetbrains/kotlin/script/examples/simpleMainKts/annotations.kt#L20 
 
-
-#### Manifestation 2: Red banner saying source not found
+### Manifestation 2: Red banner saying 'imported source file not found'
 
 This one makes the whole file underlined in red, which is extra annoying.
 
 Note that the path listed on the banner is actually incorrect. It should be using the path prefix that was provided to the import annotation (as this is how the script compiles and runs when you run the test!)
 
 ![screen5.png](screen5.png)
-
-TODO: link to ktij issue
-
-## K2 Compiler:
-
-K2 suffers from all of the problems of K1, plus:
-
-### Problem: (K2) Explicit imports cannot be found.
-
-This is a problem specific to K2 - in K1, these imports can be found.
-
-![screen3.png](screen3.png)
-
-
-(Here's what we see in K1):
-![screen4.png](screen4.png)
 
 TODO: link to ktij issue
 

@@ -1,6 +1,5 @@
 
-// Note: This import should not be necessary, so comment it out to test that behavior.
-// On the K2 compiler, even when the import is left in the script, the IDE still cannot find it.
+// Note: This import should not be necessary, it's commented out if all is well.
 //import zk.pub.scripts.definitions.numberThatTheScriptCanAccess
 
 /**
