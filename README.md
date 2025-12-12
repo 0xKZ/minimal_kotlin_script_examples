@@ -35,6 +35,10 @@ My `Import` annotation is declared in `UserScriptCompilationConfiguration.kt` an
 
 One relevant detail here is that I am using an override for where the imported scripts are relative to. A theory I have is that the IDE integration is not properly integrating with this feature.
 
+This means the failure manifestation is not the same as that script example. As a side note, when I open that script example in my IDE and go through the troubleshooting steps listed earlier in this document, the import statement is found, but there is a false highlighting error when accessing the imported variable it seems:
+
+![screen3.png](screen3.png)
+
 ### Manifestation 1: Import annotation not found
 
 For K1: This happens when for whatever reason the IDE can't find the script definitions. I can usually move it to manifestation-2 by going through the troubleshooting tip I listed earlier by reordering and re-enabling the script definitions.
