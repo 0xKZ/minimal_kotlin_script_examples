@@ -58,8 +58,7 @@ Note that the path listed on the banner is actually incorrect. It should be usin
 
 ![screen5.png](screen5.png)
 
-TODO: link to ktij issue
-
+(This is tracked here: https://youtrack.jetbrains.com/issue/KTIJ-36841 )
 
 # BONUS! I also show a work around for `scriptsInstancesSharing` not having the desired/intended performance.
 
