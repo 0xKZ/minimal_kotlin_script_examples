@@ -73,14 +73,14 @@ Weird! Leaving it in the repo for an example for others to consider. Once these 
 
 # System information from latest manual test
 
-Last Tested: Dec 2025
+Last Tested: Aug 2026
 
-Kotlin Version: 2.2.21
+Kotlin Version: 2.4.10
 
 IDE Version:
 ```
-IntelliJ IDEA 2025.2.5 (Community Edition)
-Build #IC-252.28238.7, built on November 19, 2025
-Source revision: 7059016f3609e
-Runtime version: 21.0.9+10-b1038.76 aarch64 (JCEF 122.1.9)
+IntelliJ IDEA 2026.2.1
+Build #IU-262.9437.185, built on August 8, 2026
+Source revision: 5ced7b0cd2861
+Runtime version: 25.0.3+9-b508.16 aarch64
 ```
