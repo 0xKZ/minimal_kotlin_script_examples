@@ -25,9 +25,7 @@ I also move my annotations to the top of the list, out of fear that the high lev
 
 # Problems with Kotlin Scripting that this repo shows:
 
-Currently, there's just one that is consistent! I have some other intermittent problems, but that's not the focus here.
-
-## Problem: (K1 & K2) Scripts that import other scripts report the import as not being found on K1
+## Problem 1: (K1 & K2) Scripts that import other scripts report the import as not being found on K1
 
 This utilizes a feature wherein you need a script to be able to import and use another script.
 
@@ -59,6 +57,12 @@ Note that the path listed on the banner is actually incorrect. It should be usin
 ![screen5.png](screen5.png)
 
 (This is tracked here: https://youtrack.jetbrains.com/issue/KTIJ-36841 )
+
+## Problem 2: Script definition not found by IDE.
+
+This is a new regression caused by me upgrading to `2026.2.1`. I confirmed it works on my other machine on `2026.1.4`.
+
+This looks like it was caused by a new feature that was merged in. I added a comment here: https://youtrack.jetbrains.com/issue/KTIJ-38886/Rework-kotlin-custom-scripting-definitions-discovery-and-loading
 
 # BONUS! I also show a work around for `scriptsInstancesSharing` not having the desired/intended performance.
 
