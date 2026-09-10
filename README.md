@@ -64,6 +64,8 @@ This is a new regression caused by me upgrading to `2026.2.1`. I confirmed it wo
 
 This looks like it was caused by a new feature that was merged in. I added a comment here: https://youtrack.jetbrains.com/issue/KTIJ-38886/Rework-kotlin-custom-scripting-definitions-discovery-and-loading
 
+(Update: I opened a separate issue to track this: https://youtrack.jetbrains.com/issue/KTIJ-40199/Regression-Custom-script-definitions-no-longer-found )
+
 # BONUS! I also show a work around for `scriptsInstancesSharing` not having the desired/intended performance.
 
 Take a look inside of `UserScriptRegistry` to see how I use the compiled script instances.
