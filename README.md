@@ -66,6 +66,26 @@ Note that the path listed on the banner is actually incorrect. It should be usin
 
 (This is tracked here: https://youtrack.jetbrains.com/issue/KTIJ-36841 )
 
+**Status (Oct 25, 2026): the JetBrains team confirmed this is by-design** (the scripting system
+knows nothing about the project root, and the IDE process CWD is not the project root - on
+macOS it's `/`), and suggested using an absolute path for the assets directory.
+
+The repo implements that suggestion in `resolveScriptImportsBaseDir()` in
+[srcs/pub/src/main/kotlin/zk/pub/scripts/UserScriptCompilationConfiguration.kt](srcs/pub/src/main/kotlin/zk/pub/scripts/UserScriptCompilationConfiguration.kt):
+it resolves the `assets/` directory to an absolute path - discovered from the classpath the
+IDE loads the script definitions from, or set explicitly with `-Dzk.assetsDir` - and the
+`@Import` paths are built from it. Works in the IDE, in tests, and on any machine, with no
+extra steps beyond the setup above.
+
+To be fair to JetBrains, the workaround is heavier than it should be for a plain library: the
+only runtime source of an absolute project path is the IDE's own definition classpath, and
+IntelliJ exposes it only through a non-standard classloader, so discovering it takes
+reflection. That is the core of what is worth pushing back on in the ticket.
+
+If you want more details - root cause, log evidence, the resolution algorithm, why the
+workaround is unreasonable, and command-line tasks that reproduce the IDE scenario without an
+IDE - see [ktij-36841-import-resolution.md](ktij-36841-import-resolution.md).
+
 # BONUS! I also show a work around for `scriptsInstancesSharing` not having the desired/intended performance.
 
 Take a look inside of `UserScriptRegistry` to see how I use the compiled script instances.

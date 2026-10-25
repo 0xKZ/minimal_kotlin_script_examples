@@ -10,10 +10,16 @@ const val EXAMPLE_SCRIPT_FILE_EXTENSION = "example.kts"
 const val UTILS_SCRIPT_FILE_EXTENSION = "utils.kts"
 
 /**
- * This is a feature of kotlin scripting that I expect the IDE to support. When importing things, we
- * want our users to have an entry point that is maximally intuitive and convenient.
+ * Fallback directory that @Import script paths are relative to. Used ONLY when the base directory
+ * can't be resolved to an absolute path - see resolveScriptImportsBaseDir() in
+ * UserScriptCompilationConfiguration.kt, which prefers an explicit override (zk.assetsDir /
+ * ZK_ASSETS_DIR) or discovery from the location this module's classes are loaded from.
  *
- * This is relative to the launched working directory (which is the repo root).
+ * This fallback is relative to the launched working directory (which is the repo root when running
+ * tests, since the test task standardizes on it).
+ *
+ * The absolute-path preference exists because IntelliJ's working directory is NOT the repo root
+ * when it analyzes scripts (see https://youtrack.jetbrains.com/issue/KTIJ-36841).
  */
 const val SCRIPT_IMPORTS_ARE_RELATIVE_TO = "assets/"
 
