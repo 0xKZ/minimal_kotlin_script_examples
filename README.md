@@ -2,28 +2,36 @@
 
 Goals: Expose some IDE problems with Kotlin scripting using very simple examples that are derived from my very real codebase.
 
-## How to confirm stuff works
+## Making the custom script definitions work in the IDE
 
-Run the test at `srcs/pub/src/test/kotlin/zk/TestEverything.kt`. This can be done either via the IDE or with `./gradlew test`.
+The definitions (`ExampleScript`, `UtilityScript`) live in `:srcs:pub` and are published to mavenLocal as `zk:pub:<version>`. The root project depends on those coordinates, so the compiled definitions land on the classpath of the module that contains the scripts in `assets/`.
+
+1. `./gradlew buildScriptDefinitions` (or just `./gradlew build`) - builds the definition jar and publishes it to mavenLocal.
+2. Re-sync Gradle in the IDE.
+3. **(2026.2.x only)** The IDE's own definition discovery is **broken in 2026.2**, so the definitions must be listed explicitly: Settings -> Build, Execution, Deployment -> Kotlin -> **Kotlin Scripting**:
+   - **"Script definition classes to load:"** -> `zk.pub.scripts.definitions.UtilityScript, zk.pub.scripts.definitions.ExampleScript`
+   - **"Classpath for loading script definitions:"** -> the absolute path of the published jar, e.g. `/Users/<you>/.m2/repository/zk/pub/0.1.0/pub-0.1.0.jar` (no `~` expansion)
+   - **Apply** (one-time per machine; the values persist in `workspace.xml` and survive restarts)
+4. Open a script in `assets/` - the banner should show the custom definition (`.utils.kts` / `.example.kts` instead of `.kts`). If it looks stale, run **Reload Script Configuration** in the script editor (Ctrl+Alt+Shift+R).
+
+On 2026.3+ only steps 1-2 are needed - see [Appendix: what to simplify when 2026.3 lands](#appendix).
+
+Background: since 2026.2 the IDE no longer discovers definitions from `.kt` source roots - they must come from a built artifact on the module classpath (per JetBrains on [KTIJ-40199](https://youtrack.jetbrains.com/issue/KTIJ-40199)). That's why this repo is structured the way it is. The 2026.2 breakage in step 3 (and why a settings toggle doesn't fix it) is documented with log evidence in [intellij_issue_draft_script_definition_discovery_2026_2.md](intellij_issue_draft_script_definition_discovery_2026_2.md).
+
+### Troubleshooting: If it doesn't work
+
+1. **The jar.** Re-run step 1 and confirm `~/.m2/repository/zk/pub/<version>/pub-<version>.jar` exists and is fresh (it should contain the `zk/pub/scripts/definitions/*.class` files and `META-INF/kotlin/script/templates/*.classname` touchfiles).
+2. **Resolution.** `./gradlew dependencies --configuration compileClasspath` should show `zk:pub:<version>`, not `FAILED`.
+3. **The sync.** Re-sync Gradle and make sure it succeeded (no unresolved-dependency warnings).
+4. **2026.2.x: the explicit settings.** Step 3 must be filled in correctly - note that a mere settings toggle (uncheck/recheck) without filling in the two fields does *not* help.
+
+# Problems with Kotlin Scripting that this repo shows:
+
+For starters, you can confirm for yourself that the scripts compile and run by running the test at `srcs/pub/src/test/kotlin/zk/TestEverything.kt`. This can be done either via the IDE or with `./gradlew test`.
 
 This is a very simple example and for the test to run, the script must run without errors and correctly import another script.
 
 The IDE disagrees that this script works, however. See below.
-
-## Troubleshooting
-
-Sometimes, the scripts have import errors when you wouldn't expect, and they persist beyond an
-"invalidate-and-restart". 
-
-I've had luck using the following as a 'scripting reset' for the IDE:
-
-Settings -> Languages & Frameworks -> Kotlin -> Kotlin Scripting:
-
-Then find the script definitions in the list (these were populated because of my META-INF touchfiles. If not in the list, click the button to scan for them, then exit-and-reenter), and uncheck to disable them, apply, and then recheck to enable them, and apply... and then wait a minute or so?
-
-I also move my annotations to the top of the list, out of fear that the high level '.kts' definition will supercede them. This is not supported by evidence though...
-
-# Problems with Kotlin Scripting that this repo shows:
 
 ## Problem 1: (K1 & K2) Scripts that import other scripts report the import as not being found on K1
 
@@ -58,14 +66,6 @@ Note that the path listed on the banner is actually incorrect. It should be usin
 
 (This is tracked here: https://youtrack.jetbrains.com/issue/KTIJ-36841 )
 
-## Problem 2: Script definition not found by IDE.
-
-This is a new regression caused by me upgrading to `2026.2.1`. I confirmed it works on my other machine on `2026.1.4`.
-
-This looks like it was caused by a new feature that was merged in. I added a comment here: https://youtrack.jetbrains.com/issue/KTIJ-38886/Rework-kotlin-custom-scripting-definitions-discovery-and-loading
-
-(Update: I opened a separate issue to track this: https://youtrack.jetbrains.com/issue/KTIJ-40199/Regression-Custom-script-definitions-no-longer-found )
-
 # BONUS! I also show a work around for `scriptsInstancesSharing` not having the desired/intended performance.
 
 Take a look inside of `UserScriptRegistry` to see how I use the compiled script instances.
@@ -79,14 +79,35 @@ Weird! Leaving it in the repo for an example for others to consider. Once these 
 
 # System information from latest manual test
 
-Last Tested: Aug 2026
+Last Tested: Oct 2026
 
 Kotlin Version: 2.4.10
 
 IDE Version:
 ```
-IntelliJ IDEA 2026.2.1
-Build #IU-262.9437.185, built on August 8, 2026
-Source revision: 5ced7b0cd2861
-Runtime version: 25.0.3+9-b508.16 aarch64
+IntelliJ IDEA 2026.2.3
+Build #IU-262.10968.63, built on September 15, 2026
+macOS 27.0.1 (arm64)
 ```
+
+(Previous test round: IntelliJ IDEA 2026.2.1, Build #IU-262.9437.185, built on August 8, 2026 - this is where the discovery regression was first observed; 2026.1.4 worked.)
+
+# Appendix
+
+## What to simplify when 2026.3 lands
+
+On `master` (what becomes 2026.3+) the discovery works again: markers are found by walking the class roots directly in the VFS (no `FilenameIndex`), module output directories are scanned again (a plain `project(":srcs:pub")` dependency would suffice), and the definition cache invalidates on syncs and builds.
+
+Before simplifying, verify in the Kotlin plugin sources of your IDE's baseline. Release branches are named after the build baseline - e.g. `262.10968` corresponds to IU-262.10968.63 - so for a 2026.3 IDE (IU-263.xxxxx) check branch `263.xxxxx` on `JetBrains/intellij-community`:
+
+1. `plugins/kotlin/base/scripting/scripting/src/org/jetbrains/kotlin/idea/core/script/definitions/DefinitionFromDependenciesProvider.kt` has a `markerCandidateRoots(project)` function (production output roots of all modules + class roots of all libraries) and finds the markers via `classRoot.findFileByRelativePath(SCRIPT_DEFINITION_MARKERS_PATH)` - no `FilenameIndex`.
+2. In the same file, `getOrDiscover` is keyed on *both* `ScriptDefinitionsModificationTracker` and `ProjectRootModificationTracker`, and a `ScriptDefinitionsBuildListener.kt` exists in the same package.
+
+(Verified against `master` HEAD on 2026-10-27; a local sparse checkout of branch `262.10968` plus `master`'s version of the file lives at `../misc_opensource_clones/kotlin_stuff/ic-262.10968` if you want to re-check.)
+
+If both markers are present, simplify:
+
+- Root `build.gradle.kts`: replace `implementation("zk:pub:$pubVersion")` with `implementation(project(":srcs:pub"))` and drop `mavenLocal()`; make `buildScriptDefinitions` depend on `:srcs:pub:classes` (the output dirs are scanned directly, no jar needed).
+- `srcs/pub/build.gradle.kts`: drop the `maven-publish` plugin, `group`/`version`, and the kotlin-bom removal in `afterEvaluate`.
+- `buildSrc/src/main/kotlin/Versions.kt`: drop `pubVersion`.
+- IDE workflow: just build - new/changed definitions are picked up without a sync, restart, or settings (drop step 3 above). Discovery is still compiled-artifact-based (not `.kt` sources), and the `.classname` touchfiles are still required.
