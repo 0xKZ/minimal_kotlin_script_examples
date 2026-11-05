@@ -1,23 +1,6 @@
-# Folders the game creates as part of gameplay
-temp
-userdata
+# Pi Agent
 
-# Translation files aren't added automatically unless I explicitly set them because of the
-# timestamp functionality and how much noise it creates. :(
-assets/translations/English.xlsx
-assets/translations/English.xlsx.temp
-assets/modules/*/translations/English.xlsx
-assets/modules/*/translations/English.xlsx.temp
-
-## Zach's buildfiles
-last_build.txt
-
-# Keep the visual diff tests folder so we can store what visuals pass the tests.
-# But, don't keep the output folder, since that writes new images every time the
-# tests are run.
-dev_files/visual_diff_tests/out
-dev_files/visual_diff_tests/diffs
-
+.pi
 
 # Since the gradle update this folder has shown up
 classes/
